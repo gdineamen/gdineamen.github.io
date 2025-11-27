@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silent Auth PoC Launcher</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body>
+
+<div class="w-full max-w-sm p-6 bg-white rounded-xl shadow-2xl space-y-8">
+    
+    <div class="text-center">
+        <h1 class="text-3xl font-bold text-red-600">Silent Auth PoC</h1>
+        <p class="text-sm text-gray-500 mt-1">Mobile Web Flow Initiation</p>
+    </div>
+
+    <!-- Instructions Block -->
+    <div class="p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg">
+        <p class="font-semibold text-yellow-800">CRITICAL PREREQUISITE:</p>
+        <ul class="list-disc list-inside text-sm text-yellow-700 mt-2 space-y-1">
+            <li>You **MUST** disable Wi-Fi.</li>
+            <li>You **MUST** be connected via **Mobile Data** from the intended MNO (Smart/PLDT) on this device.</li>
+            <li>This initial request must be routed as **Mobile Data Traffic** for the silent verification to work.</li>
+        </ul>
+    </div>
+
+    <button id="auth-button" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition duration-150 ease-in-out shadow-lg shadow-red-300/50" onclick="launchSilentAuth()">
+        Launch Silent Authentication
+    </button>
+
+    <div class="p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg space-y-2">
+        <p class="font-semibold text-blue-800">Backend Callback Information:</p>
+        <p class="text-xs text-blue-700">The browser will be redirected to your secure backend endpoint at:</p>
+        <code class="text-xs break-all bg-gray-100 p-1 rounded block text-gray-700" id="redirect-uri-display"></code>
+        <p class="text-xs text-blue-700 font-semibold mt-2">Your backend server must receive the `code` and exchange it for the final token.</p>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const REDIRECT_URI = 'https://i4pp84d8w7.execute-api.eu-central-1.amazonaws.com/prod/verify';
+        document.getElementById('redirect-uri-display').textContent = REDIRECT_URI;
+    });
+
+    /**
+     * Constructs the full authorization URL and redirects the user's browser.
+     * This simulates the "Front End App" launching the flow.
+     */
+    function launchSilentAuth() {
+        // --- 1. Define OIDC Parameters ---
+        const AUTH_URL_BASE = 'https://silent-auth-d3pdt.nabstract.io/ac/auth-service/openIDConnect/deviceinitiated/v1/authorize';
+        const CLIENT_ID = 'Promotexter-APPD1_53bca13e-c634-47b0-9da8-65884d4c9a30';
+        const REDIRECT_URI = 'https://i4pp84d8w7.execute-api.eu-central-1.amazonaws.com/prod/verify';
+        
+        // Scope must be correctly encoded for the browser
+        const SCOPE = 'dpv%3AFraudPreventionAndDetection%20number-verification%20openid'; 
+        
+        const RESPONSE_TYPE = 'code';
+        const PROMPT = 'none'; // Essential for silent auth
+        
+        // State and Nonce should ideally be generated securely and tracked by your server
+        const STATE = 'aaeb68ca-9a68-4b4a-9aed-25e365d71bdd'; 
+        const NONCE = 'bbeb78ca-9a68-4b4a-9aed-25e365d71bee';
+
+        // --- 2. Build the Full URL ---
+        const params = [
+            `client_id=${CLIENT_ID}`,
+            `redirect_uri=${REDIRECT_URI}`,
+            `scope=${SCOPE}`,
+            `response_type=${RESPONSE_TYPE}`,
+            `prompt=${PROMPT}`,
+            `state=${STATE}`,
+            `nonce=${NONCE}`
+        ].join('&');
+
+        const fullAuthUrl = `${AUTH_URL_BASE}?${params}`;
+
+        // --- 3. Execute Redirect ---
+        console.log("Initiating Silent Auth Redirect to:", fullAuthUrl);
+        window.location.href = fullAuthUrl;
+
+        // Note: The MNO system will handle the silent check and redirect to the REDIRECT_URI 
+        // with the Authorization Code, completing the client-side part of the flow.
+    }
+</script>
+
+</body>
+</html>
