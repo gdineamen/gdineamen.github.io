@@ -22,7 +22,7 @@
 <div class="w-full max-w-sm p-6 bg-white rounded-xl shadow-2xl space-y-8">
     
     <div class="text-center">
-        <h1 class="text-3xl font-bold text-red-600">Silent Auth PoC</h1>
+        <h1 class="text-3xl font-bold text-red-600">Silent Auth PoC - 1 </h1>
         <p class="text-sm text-gray-500 mt-1">Mobile Web Flow Initiation</p>
     </div>
 
@@ -50,7 +50,7 @@
         const REDIRECT_URI = 'https://i4pp84d8w7.execute-api.eu-central-1.amazonaws.com/prod/verify';
         
         // Scope must be correctly encoded for the browser
-        const SCOPE = 'dpv%3AFraudPreventionAndDetection%20number-verification%20openid'; 
+       const SCOPE = 'dpv:FraudPreventionAndDetection number-verification openid';
         
         const RESPONSE_TYPE = 'code';
         const PROMPT = 'none'; // Essential for silent auth
@@ -60,17 +60,16 @@
         const NONCE = 'bbeb78ca-9a68-4b4a-9aed-25e365d71bee';
 
         // --- 2. Build the Full URL ---
-        const params = [
-            `client_id=${CLIENT_ID}`,
-            `redirect_uri=${REDIRECT_URI}`,
-            `scope=${SCOPE}`,
-            `response_type=${RESPONSE_TYPE}`,
-            `prompt=${PROMPT}`,
-            `state=${STATE}`,
-            `nonce=${NONCE}`
-        ].join('&');
-
-        const fullAuthUrl = `${AUTH_URL_BASE}?${params}`;
+       const params = new URLSearchParams({
+    client_id: CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
+    scope: SCOPE, // URLSearchParams will correctly encode spaces to '%20'
+    response_type: RESPONSE_TYPE,
+    prompt: PROMPT,
+    state: STATE,
+    nonce: NONCE
+});
+       const fullAuthUrl = `${AUTH_URL_BASE}?${params.toString()}`;
 
         // --- 3. Execute Redirect ---
         console.log("Initiating Silent Auth Redirect to:", fullAuthUrl);
